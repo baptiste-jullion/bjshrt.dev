@@ -3,7 +3,11 @@
         <section class="flex flex-col gap-2">
             <div>
                 <div class="flex items-center gap-2">
-                    <h2 class="font-bold truncate flex items-center gap-1">
+                    <h2
+                        class="font-bold truncate flex items-center gap-1 cursor-pointer"
+                        title="Click to copy shortened link"
+                        @click="copyLink()"
+                    >
                         <Button size="sm" variant="outline" disabled>
                             {{ shortenedUrl.base }}
                         </Button>
@@ -18,7 +22,7 @@
                                     <Ellipsis />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent class="w-56">
+                            <DropdownMenuContent class="w-56" align="end">
                                 <DropdownMenuGroup>
                                     <DropdownMenuItem
                                         @click="
@@ -159,9 +163,8 @@ const { copy } = useClipboard();
 const copyLink = () => {
     copy(shortenedUrl.value.href);
     toast.success("Shortened link copied to clipboard", {
-        duration: 8000,
+        duration: 1000,
         dismissible: true,
-        closeButton: true,
     });
 };
 </script>

@@ -1,9 +1,0 @@
-services:
-  front:
-    container_name: url-shortener-front
-    ports:
-      - "58668:3000"
-    build:
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app

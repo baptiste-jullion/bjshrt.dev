@@ -1,7 +1,9 @@
 <template>
     <Toaster />
     <TooltipProvider>
-        <NuxtPage />
+        <NuxtLayout>
+            <NuxtPage />
+        </NuxtLayout>
     </TooltipProvider>
 </template>
 

@@ -10,7 +10,7 @@ export default defineNuxtConfig({
         plugins: [tailwindcss()],
     },
 
-    modules: ["shadcn-nuxt", "@nuxt/fonts"],
+    modules: ["shadcn-nuxt", "@nuxt/fonts", "nuxt-oidc-auth", "@nuxt/icon"],
 
     shadcn: {
         componentDir: "./app/components/ui",
@@ -24,8 +24,30 @@ export default defineNuxtConfig({
     },
 
     runtimeConfig: {
+        whitelistedUsers: "",
         public: {
             baseShortenedUrl: "",
+            fallbackUrl: "",
         },
+    },
+
+    oidc: {
+        providers: {
+            github: {
+                skipAccessTokenParsing: true,
+                redirectUri: "http://localhost:3000/auth/github/callback",
+                clientId: "",
+                clientSecret: "",
+                filterUserInfo: ["id"],
+            },
+        },
+        middleware: {
+            globalMiddlewareEnabled: false,
+        },
+        defaultProvider: "github",
+    },
+
+    icon: {
+        mode: "svg",
     },
 });
