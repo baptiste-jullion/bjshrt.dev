@@ -10,10 +10,22 @@ export default defineNuxtConfig({
         plugins: [tailwindcss()],
     },
 
-    modules: ["shadcn-nuxt"],
+    modules: ["shadcn-nuxt", "@nuxt/fonts"],
 
     shadcn: {
         componentDir: "./app/components/ui",
         prefix: "",
+    },
+
+    nitro: {
+        experimental: {
+            database: true,
+        },
+    },
+
+    runtimeConfig: {
+        public: {
+            baseShortenedUrl: "",
+        },
     },
 });
