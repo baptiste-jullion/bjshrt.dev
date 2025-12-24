@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     env:
       SSH_HOST: ${{ secrets.HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT || '12018' }}
