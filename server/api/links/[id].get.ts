@@ -1,14 +1,22 @@
 export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, "id");
+    const {
+        public: { fallbackUrl },
+    } = useRuntimeConfig();
 
-    const { rows } =
-        await db.sql`SELECT * FROM links WHERE shortenedUrl = ${id}`;
+    if (!id) {
+        return { originalUrl: fallbackUrl };
+    }
 
-    if (!rows || rows?.length === 0) {
-        throw createError({
-            statusCode: 404,
-            statusMessage: "Link not found",
-        });
+    const { rows } = await db.sql`
+        UPDATE links
+        SET clicks = clicks + 1
+        WHERE shortenedUrl = ${id}
+        RETURNING *
+    `;
+
+    if (!rows || rows.length === 0) {
+        return { originalUrl: fallbackUrl };
     }
 
     return rows[0] as LinkRead;
