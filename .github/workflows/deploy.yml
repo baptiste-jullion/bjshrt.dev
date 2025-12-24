@@ -1,31 +1,59 @@
-name: Deploy Nuxt3 Bun App
+name: Deploy Nuxt App
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT || '12018' }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_KEY: ${{ secrets.SSH_KEY }}
+      NUXT_WHITELISTED_USERS: ${{ secrets.NUXT_WHITELISTED_USERS }}
+      NUXT_PUBLIC_BASE_SHORTENED_URL: ${{ secrets.NUXT_PUBLIC_BASE_SHORTENED_URL }}
+      NUXT_PUBLIC_FALLBACK_URL: ${{ secrets.NUXT_PUBLIC_FALLBACK_URL }}
+      NUXT_OIDC_GITHUB_CLIENT_ID: ${{ secrets.NUXT_OIDC_GITHUB_CLIENT_ID }}
+      NUXT_OIDC_GITHUB_CLIENT_SECRET: ${{ secrets.NUXT_OIDC_GITHUB_CLIENT_SECRET }}
+      NITRO_DATABASE_URL: ${{ secrets.NITRO_DATABASE_URL }}
+      NUXT_OIDC_SESSION_SECRET: ${{ secrets.NUXT_OIDC_SESSION_SECRET }}
+      NUXT_OIDC_TOKEN_KEY: ${{ secrets.NUXT_OIDC_TOKEN_KEY }}
+      NUXT_OIDC_AUTH_SESSION_SECRET: ${{ secrets.NUXT_OIDC_AUTH_SESSION_SECRET }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p 12018 -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH
         run: |
-          ssh -p 12018 ${{ secrets.SSH_USER }}@${{ secrets.HOST }} << 'EOF'
-            cd /home/sites/bjshrt.dev/
-            git pull origin main
-            docker build -t bjshrt-front .
-            docker stop bjshrt-front-website || true
-            docker rm bjshrt-front-website || true
-            docker run -d --env-file .env --name bjshrt-front-website -p 58668:3000 --restart unless-stopped bjshrt-front
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" <<EOF
+            set -euo pipefail
+            cd /home/sites/bjshrt.dev
+            git fetch origin main
+            git reset --hard origin/main
+
+            printf "%s\n" \
+              "NUXT_WHITELISTED_USERS=${NUXT_WHITELISTED_USERS}" \
+              "NUXT_PUBLIC_BASE_SHORTENED_URL=${NUXT_PUBLIC_BASE_SHORTENED_URL}" \
+              "NUXT_PUBLIC_FALLBACK_URL=${NUXT_PUBLIC_FALLBACK_URL}" \
+              "NUXT_OIDC_GITHUB_CLIENT_ID=${NUXT_OIDC_GITHUB_CLIENT_ID}" \
+              "NUXT_OIDC_GITHUB_CLIENT_SECRET=${NUXT_OIDC_GITHUB_CLIENT_SECRET}" \
+              "NUXT_OIDC_SESSION_SECRET=${NUXT_OIDC_SESSION_SECRET}" \
+              "NUXT_OIDC_TOKEN_KEY=${NUXT_OIDC_TOKEN_KEY}" \
+              "NUXT_OIDC_AUTH_SESSION_SECRET=${NUXT_OIDC_AUTH_SESSION_SECRET}" \
+              "NITRO_DATABASE_URL=${NITRO_DATABASE_URL}" \
+              > .env.runtime
+
+            docker build --pull -t bjshrt-front .
+            docker rm -f bjshrt-front-website 2>/dev/null || true
+            docker run -d --env-file .env.runtime --name bjshrt-front-website -p 58668:3000 --restart unless-stopped bjshrt-front
           EOF
