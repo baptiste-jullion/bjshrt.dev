@@ -35,7 +35,7 @@ export default defineNuxtConfig({
         providers: {
             github: {
                 skipAccessTokenParsing: true,
-                redirectUri: "http://localhost:3000/auth/github/callback",
+                redirectUri: `${process.env.NUXT_PUBLIC_BASE_SHORTENED_URL}/auth/github/callback`,
                 clientId: "",
                 clientSecret: "",
                 filterUserInfo: ["id"],
