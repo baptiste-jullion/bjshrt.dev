@@ -3,6 +3,9 @@ import { UserSession } from "nuxt-oidc-auth/runtime/types.js";
 
 export default defineEventHandler(async (event) => {
     const { pathname } = getRequestURL(event);
+
+    console.log("Auth middleware triggered for path:", pathname);
+
     let userInfo: UserSession["userInfo"];
 
     try {
@@ -14,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
     const userId = userInfo?.id as number | undefined;
 
-    const requiresAuthPaths = ["/api/links/"];
+    const requiresAuthPaths = ["/api/links"];
 
     const { whitelistedUsers } = useRuntimeConfig();
 
@@ -23,7 +26,7 @@ export default defineEventHandler(async (event) => {
     if (requiresAuthPaths.includes(pathname)) {
         console.log("requires auth");
         if (!userId || !mappedWhitelistedUsers.includes(userId.toString())) {
-            sendRedirect(event, "/auth/login");
+            return sendRedirect(event, "/auth/login");
         }
     }
 });
