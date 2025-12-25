@@ -58,5 +58,11 @@ jobs:
 
             docker build --pull -t bjshrt-front .
             docker rm -f bjshrt-front-website 2>/dev/null || true
-            docker run -d --env-file .env.runtime --name bjshrt-front-website -p 55459:3000 --restart unless-stopped bjshrt-front
+            docker run -d \
+              --env-file .env.runtime \
+              --name bjshrt-front-website \
+              -p 55459:3000 \
+              -v /home/sites/bjshrt.dev/data:/app/.data \
+              --restart unless-stopped \
+              bjshrt-front
           EOF
