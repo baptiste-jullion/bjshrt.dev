@@ -28,6 +28,7 @@
                 v-for="(link, index) in links"
                 :key="link.shortenedUrl"
                 :link
+                @deleted="handleLinkDeleted"
                 :class="{
                     'col-span-full': index === 0,
                 }"
@@ -69,5 +70,9 @@ const handleLogout = async () => {
     await logout();
     await clear();
     await navigateTo("/auth/login");
+};
+
+const handleLinkDeleted = async () => {
+    await refresh();
 };
 </script>

@@ -50,7 +50,8 @@
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         variant="destructive"
-                                        disabled
+                                        :disabled="deleting"
+                                        @click="deleteLink()"
                                     >
                                         <span>Delete</span>
                                         <Trash class="ml-auto size-3.5" />
@@ -139,6 +140,8 @@ const { link } = defineProps<{
     link: LinkRead;
 }>();
 
+const emit = defineEmits<{ (event: "deleted"): void }>();
+
 const { data: favicon } = await useFetch("/api/favicon", {
     query: {
         url: link.originalUrl,
@@ -160,11 +163,38 @@ const qrcode = useQRCode(() => shortenedUrl.value.href);
 
 const { copy } = useClipboard();
 
+const deleting = ref(false);
+
 const copyLink = () => {
     copy(shortenedUrl.value.href);
     toast.success("Shortened link copied to clipboard", {
         duration: 1000,
         dismissible: true,
     });
+};
+
+const deleteLink = async () => {
+    if (deleting.value) {
+        return;
+    }
+
+    deleting.value = true;
+
+    try {
+        await $fetch(`/api/links/${link.shortenedUrl}`, {
+            method: "delete",
+        });
+        toast.success("Link deleted", {
+            duration: 1000,
+        });
+        emit("deleted");
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to delete link", {
+            duration: 1500,
+        });
+    } finally {
+        deleting.value = false;
+    }
 };
 </script>
