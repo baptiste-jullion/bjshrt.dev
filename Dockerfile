@@ -2,7 +2,7 @@ FROM node:22-slim AS base
 ENV BUN_INSTALL=/bun \
 	PATH="/bun/bin:$PATH"
 RUN apt-get update \
-	&& apt-get install -y curl \
+	&& apt-get install -y curl unzip \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& curl -fsSL https://bun.sh/install | bash
 WORKDIR /app
