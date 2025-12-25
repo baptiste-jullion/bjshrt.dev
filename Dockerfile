@@ -1,14 +1,19 @@
 FROM node:22-slim AS base
+ENV BUN_INSTALL=/bun \
+	PATH="/bun/bin:$PATH"
+RUN apt-get update \
+	&& apt-get install -y curl \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& curl -fsSL https://bun.sh/install | bash
 WORKDIR /app
-ENV NODE_ENV=production
 
 FROM base AS deps
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN bun install
 
 FROM deps AS build
 COPY . .
-RUN npm run build
+RUN bun run build
 
 FROM node:22-slim AS runner
 WORKDIR /app
